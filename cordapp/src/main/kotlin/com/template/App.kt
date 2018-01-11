@@ -51,7 +51,8 @@ class IOUFlow(val iouValue: Int, // By having parameters, we can use them in the
         // We get the notary from the network map, obtained through the service hub.
         val notary = serviceHub.networkMapCache.notaryIdentities[0]
 
-        // We create a transaction builder.
+        // To actually create the transaction, we need a transaction builder.
+        // It allows us to add inputs, outputs, commands, etc to the transaction.
         val txBuilder = TransactionBuilder(notary = notary)
 
         // We create the transaction components.
@@ -64,13 +65,15 @@ class IOUFlow(val iouValue: Int, // By having parameters, we can use them in the
         txBuilder.withItems(outputContractAndState, cmd)
 
         // Make sure you verify the transaction before you sign it.
-        // Verifying the transaction.
+        // Verifying the transaction via the given contract above. (IOU_CONTRACT_ID)
         txBuilder.verify(serviceHub)
 
-        // Signing the transaction.
+        // We sign the transaction, so it is effectively immutable.
+        // Changing it would invalidate our signature.
+        // It returns a signed transaction, which is a transaction and list of signatures.
         val signedTx = serviceHub.signInitialTransaction(txBuilder)
 
-        // Creating a session with the other party.
+        // Creating a session with the other party, so we can get them to sign the transaction.
         val otherpartySession = initiateFlow(otherParty)
 
         // Obtaining the counterparty's signature.
@@ -79,32 +82,12 @@ class IOUFlow(val iouValue: Int, // By having parameters, we can use them in the
         // > List of flow sessions between flow initiator and required signers.
         val fullySignedTx = subFlow(CollectSignaturesFlow(signedTx, listOf(otherpartySession), CollectSignaturesFlow.tracker()))
 
-        // Finalising the transaction.
+        // We finalise the transaction using the FinalityFlow.
+        // The FinalityFlows provides:
+        // > Notarisation if required(if there are inputs to be consumed / time windows).
+        // > Recording in nodes vault.
+        // > Sending it to other participants to record.
         subFlow(FinalityFlow(fullySignedTx))
-
-//        // The output state is what will be added to the ledger. Note that there is no input states being consumed.
-//        val outputState = IOUState(iouValue, ourIdentity, otherParty)
-//        // The command is used to indicate the intent of the transaction,
-//        // it also contains the public keys of required signers of the transaction. Eg. lender of the IOU.
-//        val cmd = Command(TemplateContract.Commands.Action(), ourIdentity.owningKey)
-//
-//        // To actually create the transaction, we need a transaction builder.
-//        // It allows us to add inputs, outputs, commands, etc to the transaction.
-//        val txBuilder = TransactionBuilder(notary = notary) // add the notary
-//                .addOutputState(outputState, TEMPLATE_CONTRACT_ID) // add the output state and the contract(default has no constraints)
-//                .addCommand(cmd) // add the command
-//
-//        // We sign the transaction, so it is effectively immutable.
-//        // Changing it would invalidate our signature.
-//        // It returns a signed transaction, which is a transaction and list of signatures.
-//        val signedTx : SignedTransaction = serviceHub.signInitialTransaction(txBuilder)
-//
-//        // We finalise the transaction using the FinalityFlow.
-//        // The FinalityFlows provides:
-//        // > Notarisation if required(if there are inputs to be consumed / time windows).
-//        // > Recording in nodes vault.
-//        // > Sending it to other participants to record.
-//        subFlow(FinalityFlow(signedTx))
     }
 }
 
