@@ -6,6 +6,7 @@ import net.corda.core.contracts.StateAndContract
 import net.corda.core.contracts.requireThat
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
+import net.corda.core.internal.randomOrNull
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.serialization.SerializationWhitelist
 import net.corda.core.transactions.SignedTransaction
@@ -36,57 +37,32 @@ class TemplateApi(val rpcOps: CordaRPCOps) {
 // *********
 // * Flows *
 // *********
-@InitiatingFlow // Flow can be initiated by the node
-@StartableByRPC // Flow can be started by owner via remote procedure call
-class IOUFlow(val iouValue: Int, // By having parameters, we can use them in the call method.
-              val otherParty: Party) : FlowLogic<Unit>() {
-    // Extending FlowLogic allows us to create a flow. The type is what the flow.call will return, in this case, nothing.
+@InitiatingFlow
+@StartableByRPC
+class HarrisonIssueRequestFlow(val harrisonValue: Int, val otherParty: Party) : FlowLogic<Unit>() {
 
-    /** The progress tracker provides checkpoints indicating the progress of the flow to observers. */
     override val progressTracker = ProgressTracker()
 
-    // The call method is what happens when calling the flow.
-    @Suspendable // This allows method to be suspended if running too long, to move onto other flows.
+    @Suspendable
     override fun call() {
-        // We get the notary from the network map, obtained through the service hub.
-        val notary = serviceHub.networkMapCache.notaryIdentities[0]
+        val notary = serviceHub.networkMapCache.notaryIdentities.randomOrNull()
 
-        // To actually create the transaction, we need a transaction builder.
-        // It allows us to add inputs, outputs, commands, etc to the transaction.
         val txBuilder = TransactionBuilder(notary = notary)
 
-        // We create the transaction components.
-        val outputState = IOUState(iouValue, ourIdentity, otherParty)
-        val outputContractAndState = StateAndContract(outputState, IOU_CONTRACT_ID)
-        val cmd = Command(IOUContract.Create(), listOf(ourIdentity.owningKey, otherParty.owningKey))
-        // The command includes the contract and the list of required signers.
+        val outputState = HarrisonState(harrisonValue, ourIdentity, otherParty)
+        val outputContractAndState = StateAndContract(outputState, HARRISON_ISSUANCE_CONTRACT_ID)
+        val cmd = Command(HarrisonIssueContract.Create(), listOf(ourIdentity.owningKey, otherParty.owningKey))
 
-        // We add the items to the builder.
         txBuilder.withItems(outputContractAndState, cmd)
 
-        // Make sure you verify the transaction before you sign it.
-        // Verifying the transaction via the given contract above. (IOU_CONTRACT_ID)
         txBuilder.verify(serviceHub)
 
-        // We sign the transaction, so it is effectively immutable.
-        // Changing it would invalidate our signature.
-        // It returns a signed transaction, which is a transaction and list of signatures.
         val signedTx = serviceHub.signInitialTransaction(txBuilder)
 
-        // Creating a session with the other party, so we can get them to sign the transaction.
         val otherpartySession = initiateFlow(otherParty)
 
-        // Obtaining the counterparty's signature.
-        // The collect signatures flow takes:
-        // > Transaction signed by flow initiator
-        // > List of flow sessions between flow initiator and required signers.
         val fullySignedTx = subFlow(CollectSignaturesFlow(signedTx, listOf(otherpartySession), CollectSignaturesFlow.tracker()))
 
-        // We finalise the transaction using the FinalityFlow.
-        // The FinalityFlows provides:
-        // > Notarisation if required(if there are inputs to be consumed / time windows).
-        // > Recording in nodes vault.
-        // > Sending it to other participants to record.
         subFlow(FinalityFlow(fullySignedTx))
     }
 }
@@ -95,29 +71,22 @@ class IOUFlow(val iouValue: Int, // By having parameters, we can use them in the
 // * Flow Responders *
 // *******************
 
-@InitiatedBy(IOUFlow::class)
-class IOUFlowResponder(val otherPartySession: FlowSession) : FlowLogic<Unit>() {
+@InitiatedBy(HarrisonIssueRequestFlow::class)
+class HarrisonIssueResponderFlow(val otherPartySession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
-        // The CollectSignatureFlow we are receiving expects us to return our signature.
-        // SignTransactionFlow is an abstract class which is pre-defined to do this.
         val signTransactionFlow = object : SignTransactionFlow(otherPartySession, SignTransactionFlow.tracker()) {
-            // SignTransactionFlow will automatically verfiy and then sign the transaction,
-            // but just because the transaction is contractually valid doesn't mean we
-            // should sign it. So we override checkTransaction to add extra constraints.
             override fun checkTransaction(stx: SignedTransaction) {
-                // Extra requirements we impose for ourselves as the contract is still valid,
-                // but we want to ensure we get the best deal for us.
                 requireThat {
                     val output = stx.tx.outputs.single().data
-                    "This must be an IOU transaction." using (output is IOUState)
-                    val iou = output as IOUState
-                    "The IOU's value can't be too high." using (iou.value < 100)
+                    "Output must be HarrisonState object" using (output is HarrisonState)
+                    val state = output as HarrisonState
+                    "Value must be divisible by 42" using (state.value % 42 == 0)
                 }
             }
         }
-
         subFlow(signTransactionFlow)
+
     }
 }
 
