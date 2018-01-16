@@ -10,6 +10,7 @@ Issue from Corporation to Bank of Harrison<br>
 Check vault on Corporation<br>
 `run vaultQuery contractStateType: com.template.HarrisonState`
 
+![Transaction](./images/transaction.png)
 
 ### Learning
 https://github.com/corda/cordapp-example/blob/release-V2/kotlin-source/src/test/kotlin/com/example/contract/IOUContractTests.kt
