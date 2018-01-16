@@ -39,12 +39,12 @@ class TemplateApi(val rpcOps: CordaRPCOps) {
 // *********
 @InitiatingFlow
 @StartableByRPC
-class HarrisonIssueRequestFlow(val harrisonValue: Int, val otherParty: Party) : FlowLogic<Unit>() {
+class HarrisonIssueRequestFlow(val harrisonValue: Int, val otherParty: Party) : FlowLogic<SignedTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call() {
+    override fun call(): SignedTransaction {
         val notary = serviceHub.networkMapCache.notaryIdentities.randomOrNull()
 
         val txBuilder = TransactionBuilder(notary = notary)
@@ -63,7 +63,7 @@ class HarrisonIssueRequestFlow(val harrisonValue: Int, val otherParty: Party) : 
 
         val fullySignedTx = subFlow(CollectSignaturesFlow(signedTx, listOf(otherpartySession), CollectSignaturesFlow.tracker()))
 
-        subFlow(FinalityFlow(fullySignedTx))
+        return subFlow(FinalityFlow(fullySignedTx))
     }
 }
 
@@ -72,9 +72,9 @@ class HarrisonIssueRequestFlow(val harrisonValue: Int, val otherParty: Party) : 
 // *******************
 
 @InitiatedBy(HarrisonIssueRequestFlow::class)
-class HarrisonIssueResponderFlow(val otherPartySession: FlowSession) : FlowLogic<Unit>() {
+class HarrisonIssueResponderFlow(val otherPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
-    override fun call() {
+    override fun call(): SignedTransaction {
         val signTransactionFlow = object : SignTransactionFlow(otherPartySession, SignTransactionFlow.tracker()) {
             override fun checkTransaction(stx: SignedTransaction) {
                 requireThat {
@@ -85,7 +85,7 @@ class HarrisonIssueResponderFlow(val otherPartySession: FlowSession) : FlowLogic
                 }
             }
         }
-        subFlow(signTransactionFlow)
+        return subFlow(signTransactionFlow)
 
     }
 }
