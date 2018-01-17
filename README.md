@@ -10,6 +10,10 @@ Issue from Corporation to Bank of Harrison<br>
 Check vault on Corporation<br>
 `run vaultQuery contractStateType: com.template.HarrisonState`
 
+## State
+![State](./images/state.png)
+
+## Transaction
 ![Transaction](./images/transaction.png)
 
 ### Learning
