@@ -40,7 +40,11 @@ class Controller (
     fun whoami() = mapOf("me" to myLegalName)
 
     @GetMapping("/harrisons")
-    fun getHarrisons() = rpc.proxy.vaultQueryBy<HarrisonState>().states
+    fun getHarrisons() : List<Map<String, String>> {
+        val stateAndRefs = rpc.proxy.vaultQueryBy<HarrisonState>().states
+        val states = stateAndRefs.map { it.state.data }
+        return states.map { it.toJson() }
+    }
 
 //    @PutMapping("issue-harrison")
 //    fun issueHarrison(@QueryParam("value") value : Int,
@@ -73,6 +77,11 @@ class Controller (
             // log me
             Response.status(Response.Status.BAD_REQUEST).entity(ex.message!!).build()
         }
+    }
+
+    // Converting state to json
+    private fun HarrisonState.toJson(): Map<String, String> {
+        return mapOf("owner" to owner.name.organisation, "issuer" to issuer.name.toString(), "value" to value.toString())
     }
 
 }
