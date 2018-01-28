@@ -27,6 +27,7 @@ class Controller (
 
     private val myLegalName: CordaX500Name = rpc.proxy.nodeInfo().legalIdentities.first().name
 
+    @CrossOrigin
     @GetMapping("/getPeers")
     fun getPeers(): Map<String, List<CordaX500Name>> {
         val nodeInfo = rpc.proxy.networkMapSnapshot() //rpcOps.networkMapSnapshot()
@@ -36,9 +37,11 @@ class Controller (
                 .filter { it.organisation !in (SERVICE_NAMES + myLegalName.organisation) })
     }
 
+    @CrossOrigin
     @GetMapping("/me")
     fun whoami() = mapOf("me" to myLegalName)
 
+    @CrossOrigin
     @GetMapping("/harrisons")
     fun getHarrisons() : List<Map<String, String>> {
         val stateAndRefs = rpc.proxy.vaultQueryBy<HarrisonState>().states
@@ -46,9 +49,7 @@ class Controller (
         return states.map { it.toJson() }
     }
 
-//    @PutMapping("issue-harrison")
-//    fun issueHarrison(@QueryParam("value") value : Int,
-//                      @QueryParam("bank") bankString : String) : Response {
+    @CrossOrigin
     @PostMapping(value = "/issue-harrison")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     private fun requestHarrisonIssuance(request: HttpServletRequest): Response {
