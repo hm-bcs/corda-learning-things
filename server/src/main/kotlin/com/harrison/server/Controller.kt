@@ -7,11 +7,11 @@ import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.Consumes
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 private const val CONTROLLER_NAME = "config.controller.name"
 val SERVICE_NAMES = listOf("Controller", "Network Map Service")
@@ -48,21 +48,20 @@ class Controller (
     }
 
     @CrossOrigin
-    @PostMapping(value = "/issue-harrison")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    private fun requestHarrisonIssuance(request: HttpServletRequest): Response {
+    @PostMapping(value = "/issue-harrison", consumes=[MediaType.APPLICATION_FORM_URLENCODED_VALUE])
+    private fun requestHarrisonIssuance(request: HttpServletRequest): ResponseEntity<String> {
         val bankString = request.getParameter("bank")
         val value = request.getParameter("value").toInt()
         val bankParty: CordaX500Name = CordaX500Name.parse(bankString)
         // Checks
         if(value < 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Value must not be negative.\n").build()
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Value must not be negative.\n")
         }
         if(value % 42 != 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Value must be divisible by 42.\n").build()
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Value must be divisible by 42.\n")
         }
         val bank = rpc.proxy.wellKnownPartyFromX500Name(bankParty) ?:
-                return Response.status(Response.Status.BAD_REQUEST).entity("Party named $bankParty cannot be found.\n").build()
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Party named $bankParty cannot be found.\n")
 
 
         return try {
@@ -71,10 +70,10 @@ class Controller (
 
             val result = flowHandle.returnValue.getOrThrow()
 
-            Response.status(Response.Status.CREATED).entity("Transaction id ${result.id} committed to ledger.\n").build()
+            ResponseEntity.status(HttpStatus.CREATED).body("Transaction id ${result.id} committed to ledger.\n")
         } catch (ex: Throwable) {
             // log me
-            Response.status(Response.Status.BAD_REQUEST).entity(ex.message!!).build()
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message!!)
         }
     }
 
