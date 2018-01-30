@@ -1,4 +1,4 @@
-package com.template
+package com.harrison
 
 import net.corda.testing.*
 import org.junit.After
@@ -9,7 +9,7 @@ class ContractTests {
 
     @Before
     fun setup() {
-        setCordappPackages("com.template")
+        setCordappPackages("com.harrison")
     }
 
     @After

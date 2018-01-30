@@ -1,38 +1,26 @@
-package com.template
+package com.harrison
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndContract
 import net.corda.core.contracts.requireThat
 import net.corda.core.flows.*
-import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.internal.randomOrNull
-import net.corda.core.messaging.CordaRPCOps
-import net.corda.core.messaging.startTrackedFlow
-import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.serialization.SerializationWhitelist
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
-import net.corda.core.utilities.getOrThrow
-import net.corda.webserver.services.WebServerPluginRegistry
-import sun.security.provider.certpath.OCSPResponse
-import java.util.function.Function
-import javax.print.DocFlavor
-import javax.ws.rs.*
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 // *****************
 // * API Endpoints *
 // *****************
 //val SERVICE_NAMES = listOf("Controller", "Network Map Service")
 //
-//@Path("template")
+//@Path("harrison")
 //class TemplateApi(val rpcOps: CordaRPCOps) {
 //    private val myLegalName: CordaX500Name = rpcOps.nodeInfo().legalIdentities.first().name
-//    // Accessible at /api/template/templateGetEndpoint.
+//    // Accessible at /api/harrison/templateGetEndpoint.
 //    @GET
 //    @Path("templateGetEndpoint")
 //    @Produces(MediaType.APPLICATION_JSON)
@@ -40,7 +28,7 @@ import javax.ws.rs.core.Response
 //        return Response.ok("Template GET endpoint.").build()
 //    }
 //
-//    // /api/template/getPeers
+//    // /api/harrison/getPeers
 //    @GET
 //    @Path("getPeers")
 //    @Produces(MediaType.APPLICATION_JSON)
@@ -155,10 +143,10 @@ class HarrisonIssueResponderFlow(val otherPartySession: FlowSession) : FlowLogic
 //    // A list of classes that expose web JAX-RS REST APIs.
 //    override val webApis: List<Function<CordaRPCOps, out Any>> = listOf(Function(::TemplateApi))
 //    //A list of directories in the resources directory that will be served by Jetty under /web.
-//    // This template's web frontend is accessible at /web/template.
+//    // This harrison's web frontend is accessible at /web/harrison.
 //    override val staticServeDirs: Map<String, String> = mapOf(
-//            // This will serve the templateWeb directory in resources to /web/template
-//            "template" to javaClass.classLoader.getResource("templateWeb").toExternalForm()
+//            // This will serve the templateWeb directory in resources to /web/harrison
+//            "harrison" to javaClass.classLoader.getResource("templateWeb").toExternalForm()
 //    )
 //}
 

@@ -1,4 +1,4 @@
-package com.template
+package com.harrison
 
 import net.corda.core.contracts.TransactionVerificationException
 import net.corda.core.flows.FlowException
@@ -7,10 +7,8 @@ import net.corda.core.utilities.getOrThrow
 import net.corda.node.internal.StartedNode
 import net.corda.testing.chooseIdentity
 import net.corda.testing.node.MockNetwork
-import net.corda.testing.node.MockNetwork.MockNode
 import net.corda.testing.setCordappPackages
 import net.corda.testing.unsetCordappPackages
-import net.corda.core.transactions.SignedTransaction
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -24,7 +22,7 @@ class FlowTests {
 
     @Before
     fun setup() {
-        setCordappPackages("com.template")
+        setCordappPackages("com.harrison")
         network = MockNetwork()
         val nodes = network.createSomeNodes(2)
         a = nodes.partyNodes[0]

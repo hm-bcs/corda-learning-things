@@ -1,17 +1,15 @@
-package com.template.server
+package com.harrison.server
 
-import com.template.HarrisonIssueRequestFlow
-import com.template.HarrisonState
+import com.harrison.HarrisonIssueRequestFlow
+import com.harrison.HarrisonState
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startTrackedFlow
 import net.corda.core.messaging.vaultQueryBy
 import net.corda.core.utilities.getOrThrow
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Consumes
-import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 

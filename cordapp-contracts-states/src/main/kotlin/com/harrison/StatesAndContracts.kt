@@ -1,4 +1,4 @@
-package com.template
+package com.harrison
 
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
@@ -11,7 +11,7 @@ import net.corda.core.transactions.LedgerTransaction
 // *****************
 // * Contract Code *
 // *****************
-val HARRISON_ISSUANCE_CONTRACT_ID = "com.template.HarrisonIssueContract"
+val HARRISON_ISSUANCE_CONTRACT_ID = "com.harrison.HarrisonIssueContract"
 
 class HarrisonIssueContract : Contract {
     class Create : CommandData
